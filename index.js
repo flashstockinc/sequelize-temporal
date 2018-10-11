@@ -66,6 +66,10 @@ var Temporal = function(model, sequelize, temporalOptions){
 
   var modelHistory = sequelize.define(historyName, historyAttributes, historyOptions);
 
+  modelHistory.associate = () => {
+    modelHistory.belongsTo(model, {foreignKey: 'id', targetKey: 'id'})
+  }
+
   // we already get the updatedAt timestamp from our models
   var insertHook = function(obj, options){
     var dataValues = (!temporalOptions.full && obj._previousDataValues) || obj.dataValues;
@@ -110,7 +114,7 @@ var Temporal = function(model, sequelize, temporalOptions){
   modelHistory.hook('beforeUpdate', readOnlyHook);
   modelHistory.hook('beforeDestroy', readOnlyHook);
 
-  return model;
+  return modelHistory;
 };
 
 module.exports = Temporal;
