@@ -4,7 +4,8 @@ var temporalDefaultOptions = {
   // runs the insert within the sequelize hook chain, disable
   // for increased performance
   blocking: true,
-  full: false
+  full: false,
+  underscored: false,
 };
 
 var excludeAttributes = function(obj, attrsToExclude){
@@ -13,7 +14,7 @@ var excludeAttributes = function(obj, attrsToExclude){
 }
 
 var Temporal = function(model, sequelize, temporalOptions){
-  temporalOptions = _.extend({},temporalDefaultOptions, temporalOptions);
+  temporalOptions = _.extend({}, temporalDefaultOptions, temporalOptions);
 
   var Sequelize = sequelize.Sequelize;
 
@@ -28,7 +29,7 @@ var Temporal = function(model, sequelize, temporalOptions){
       autoIncrement: true,
       unique: true
     },
-    archivedAt: {
+    [temporalOptions.underscored === true ? 'archived_at' : 'archivedAt']: {
       type: Sequelize.DATE,
       allowNull: false,
       defaultValue: Sequelize.NOW
@@ -40,7 +41,7 @@ var Temporal = function(model, sequelize, temporalOptions){
     v = excludeAttributes(v, excludedAttributes);
     // remove the "NOW" defaultValue for the default timestamps
     // we want to save them, but just a copy from our master record
-    if(v.fieldName == "createdAt" || v.fieldName == "updatedAt"){
+    if (['updatedAt', 'createdAt', 'updated_at', 'created_at'].indexOf(v.fieldName) > -1) {
       v.type = Sequelize.DATE;
     }
     return v;
@@ -49,7 +50,9 @@ var Temporal = function(model, sequelize, temporalOptions){
   //historyAttributes = _.assign({}, historyOwnAttrs, historyAttributes);
 
   var historyOwnOptions = {
-    timestamps: false
+    timestamps: false,
+    underscored: temporalOptions.underscored === true,
+    tableName: model.options.tableName + (temporalOptions.underscored === true ? '_histories' : 'History')
   };
   var excludedNames = ["name", "tableName", "sequelize", "uniqueKeys", "hasPrimaryKey", "hooks", "scopes", "instanceMethods", "defaultScope"];
   var modelOptions = excludeAttributes(model.options, excludedNames);
