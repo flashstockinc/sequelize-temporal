@@ -68,6 +68,7 @@ var Temporal = function(model, sequelize, temporalOptions){
 
   modelHistory.associate = () => {
     modelHistory.belongsTo(model, {foreignKey: 'id', targetKey: 'id'})
+    model.hasMany(modelHistory, {foreignKey: 'id', targetKey: 'id'})
   }
 
   // we already get the updatedAt timestamp from our models
